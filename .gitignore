@@ -1,0 +1,41 @@
+# ---------------------
+# Python / Django
+# ---------------------
+*.pyc
+*.pyo
+__pycache__/
+db.sqlite3
+*.sqlite3
+*.log
+
+# Environnements virtuels
+env/
+venv/
+ENV/
+.venv/
+
+# Fichiers de configuration sensibles
+.env
+
+# ---------------------
+# Django Tailwind / Node.js
+# ---------------------
+node_modules/
+package-lock.json
+npm-debug.log
+yarn-error.log
+
+# Dossiers générés par Tailwind / dist
+theme/static/css/dist/
+theme/static/css/.tailwind.css
+theme/static/css/.tailwind.css.map
+
+# ---------------------
+# IDE / OS
+# ---------------------
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
