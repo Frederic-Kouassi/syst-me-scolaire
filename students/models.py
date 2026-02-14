@@ -14,6 +14,7 @@ class Role(models.TextChoices):
     ADMINISTRATEUR = "ADMIN", "Administrateur"
     ENSEIGNANT = "PROF", "Enseignant"
     ETUDIANT = "ETUD", "Étudiant"
+    INVITE = "INV", "Invite" 
 
 class StatutTache(models.TextChoices):
     EN_ATTENTE = "ATTENTE", "En attente"
@@ -31,7 +32,7 @@ class StatutEnvoi(models.TextChoices):
 # Modèle Utilisateur de base
 
 class User(AbstractUser):
-    role = models.CharField(max_length=5, choices=Role.choices, default=Role.ETUDIANT)
+    role = models.CharField(max_length=5, choices=Role.choices,  default=Role.INVITE)
     telephone = PhoneNumberField(blank=True, null=True)
     email_parent = models.EmailField("Email du parent", blank=True, null=True)
     date=models.DateTimeField(default=datetime.now)

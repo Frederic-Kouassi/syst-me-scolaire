@@ -400,7 +400,9 @@
                         <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
                     </svg>
                 </button>
-                <a href="" target="_blank" rel="nofollow" class="btn btn-primary" style="padding: 10px 20px;">{{user.last_name}} {{user.first_name}}</a>
+               {% if user.is_authenticated %}
+                <a href="{% url 'user' %}" target="_blank" rel="nofollow" class="btn btn-primary" style="padding: 10px 20px;">Commercer</a>
+               {% endif %}
             </div>
         </header>
 
@@ -540,18 +542,19 @@
 
             <!-- CTA Section -->
             <section class="cta-section">
-                <h2>Start Building Your Website Today</h2>
-                <p>Browse 600+ free templates and find the perfect design for your next project</p>
+                <h2>Commencez à gérer votre établissement dès aujourd’hui</h2>
+                <p>Simplifiez la gestion des étudiants, enseignants et inscriptions en quelques clics.</p>
                 <div class="cta-buttons">
-                    <a href="{% url 'user' %}" target="_blank" rel="nofollow" class="btn btn-primary">Browse All Templates</a>
-                    <a href="" target="_blank" rel="nofollow" class="btn btn-secondary">Glassmorphism Templates</a>
+                    <a href="{% url 'login' %}" target="_blank" rel="nofollow" class="btn btn-primary">Se connecter</a>
+                    <a href="{% url 'register' %}" target="_blank" rel="nofollow" class="btn btn-secondary">Créer un compte</a>
                 </div>
             </section>
         </div>
 
         <!-- Footer -->
         <footer class="about-footer">
-            <p>Copyright © 2026 <a href="" target="_blank" rel="nofollow">TemplateMo</a> - Free HTML CSS Website Templates Since 2008</p>
+           <p>Copyright © 2026 <a href="#" target="_blank" rel="nofollow">Gestion Étudiant</a> - Système de Gestion Scolaire</p>
+
         </footer>
     </div>
 
