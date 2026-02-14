@@ -188,33 +188,6 @@
     
     <!-- JavaScript -->
     <script src="{% static 'js/templatemo-glass-admin-script.js' %}"></script>
-    <script>
-        // Form Validation
-        const form = document.getElementById('verificationForm');
-        
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            
-            const matricule = form.querySelector('[name="matricule_mesrs"]').value;
-            const codePaiement = form.querySelector('[name="code_paiement"]').value;
-            const anneeId = form.querySelector('[name="annee_id"]').value;
-            
-            // Validation basique
-            if (!matricule || !codePaiement || !anneeId) {
-                alert('Veuillez remplir tous les champs obligatoires.');
-                return;
-            }
-            
-            // Si toutes les validations passent, soumettre le formulaire
-            console.log('Form submitted with:', {
-                matricule,
-                codePaiement,
-                anneeId
-            });
-            
-            // Soumettre le formulaire (décommentez pour production)
-            form.submit();
-        });
-    </script>
+    
 </body>
 </html>

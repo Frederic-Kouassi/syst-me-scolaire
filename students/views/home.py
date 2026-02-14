@@ -134,7 +134,7 @@ class inscrit_etu(View):
             annee=classe.annee
         )
         messages.success(request, "Inscription effectuée avec succès !")
-        return redirect('inscrit')
+        return redirect('user')
 
 
 class affectation_ens(View):
