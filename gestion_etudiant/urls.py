@@ -19,6 +19,7 @@ urlpatterns = [
   
      path('inscrit/', inscrit_etu.as_view(), name="inscrit"),
      path('affectation/', affectation_ens.as_view(), name="affectation"),
+     path('classe/', ajouter_cls.as_view(), name="classe"),
     
     path("register/", RegisterView.as_view(), name="register"),
     path("login/", LoginView.as_view(), name="login"),

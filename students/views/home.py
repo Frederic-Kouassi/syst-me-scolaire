@@ -97,10 +97,10 @@ def etudiant(request):
 
 
 class inscrit_etu(View):
-    templates=  'global_data/inscription_etu.html'
+    templates=  'manager/inscription_etu.html'
     
     def get(self, request):
-        etudiants = User.objects.filter(role=Role.ETUDIANT).order_by('last_name')
+        etudiants = User.objects.filter(role=Role.INVITE).order_by('last_name')
          
         classes = Classe.objects.all().order_by('nom')
         annees = AnneeAcademique.objects.all().order_by('date_debut')
@@ -138,7 +138,7 @@ class inscrit_etu(View):
 
 
 class affectation_ens(View):
-    templates= 'global_data/affectation_ens.html'
+    templates= 'manager/affectation_ens.html'
     
     def get(self, request):
         enseignants = User.objects.filter(role=Role.ENSEIGNANT).order_by('last_name')
@@ -152,3 +152,11 @@ class affectation_ens(View):
         return render(request, self.templates, context)
     
     
+    
+class ajouter_cls(View):
+    templates=  'manager/ajouter_cls.html'
+    
+    def get(self, request):
+       
+        context = {}
+        return render(request, self.templates, context)
