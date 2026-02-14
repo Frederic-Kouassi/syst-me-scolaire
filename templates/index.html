@@ -74,8 +74,8 @@
                 <div class="glass-card glass-card-3d stat-card">
                     <div class="stat-card-inner">
                         <div class="stat-info">
-                            <h3>Active Users</h3>
-                            <div class="stat-value">24,521</div>
+                            <h3>Total Enseignant</h3>
+                            <div class="stat-value">{{total}}</div>
                             <span class="stat-change positive">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
                                 +8.2%
@@ -131,92 +131,8 @@
             <!-- Content Grid -->
             <section class="content-grid">
                 <!-- Chart Card -->
-                <div class="glass-card chart-card">
-                    <div class="card-header">
-                        <div>
-                            <h2 class="card-title">Revenue Analytics</h2>
-                            <p class="card-subtitle">Monthly revenue overview</p>
-                        </div>
-                        <div class="card-actions">
-                            <button class="card-btn active">Monthly</button>
-                            <button class="card-btn">Weekly</button>
-                            <button class="card-btn">Daily</button>
-                        </div>
-                    </div>
-                    <div class="chart-wrapper">
-                        <div class="chart-container">
-                            <div class="chart-y-axis">
-                                <span class="y-value">$100K</span>
-                                <span class="y-value">$80K</span>
-                                <span class="y-value">$60K</span>
-                                <span class="y-value">$40K</span>
-                                <span class="y-value">$20K</span>
-                                <span class="y-value">$0</span>
-                            </div>
-                            <div class="chart-placeholder">
-                                <div class="chart-bar-group"><div class="chart-bar bar-emerald" style="height: 120px;"></div><span class="chart-label">Jan</span></div>
-                                <div class="chart-bar-group"><div class="chart-bar bar-gold" style="height: 160px;"></div><span class="chart-label">Feb</span></div>
-                                <div class="chart-bar-group"><div class="chart-bar bar-coral" style="height: 90px;"></div><span class="chart-label">Mar</span></div>
-                                <div class="chart-bar-group"><div class="chart-bar bar-teal" style="height: 140px;"></div><span class="chart-label">Apr</span></div>
-                                <div class="chart-bar-group"><div class="chart-bar bar-amber" style="height: 180px;"></div><span class="chart-label">May</span></div>
-                                <div class="chart-bar-group"><div class="chart-bar bar-emerald" style="height: 130px;"></div><span class="chart-label">Jun</span></div>
-                                <div class="chart-bar-group"><div class="chart-bar bar-gold" style="height: 170px;"></div><span class="chart-label">Jul</span></div>
-                                <div class="chart-bar-group"><div class="chart-bar bar-coral" style="height: 150px;"></div><span class="chart-label">Aug</span></div>
-                                <div class="chart-bar-group"><div class="chart-bar bar-teal" style="height: 190px;"></div><span class="chart-label">Sep</span></div>
-                                <div class="chart-bar-group"><div class="chart-bar bar-amber" style="height: 140px;"></div><span class="chart-label">Oct</span></div>
-                                <div class="chart-bar-group"><div class="chart-bar bar-emerald" style="height: 175px;"></div><span class="chart-label">Nov</span></div>
-                                <div class="chart-bar-group"><div class="chart-bar bar-gold" style="height: 200px;"></div><span class="chart-label">Dec</span></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Activity Feed -->
-                <div class="glass-card activity-card">
-                    <div class="card-header">
-                        <div>
-                            <h2 class="card-title">Recent Activity</h2>
-                            <p class="card-subtitle">Latest transactions</p>
-                        </div>
-                    </div>
-                    <div class="activity-list">
-                        <div class="activity-item">
-                            <div class="activity-avatar" style="background: linear-gradient(135deg, var(--emerald-light), var(--emerald));">JD</div>
-                            <div class="activity-content">
-                                <p class="activity-text"><strong>John Doe</strong> purchased Premium Plan</p>
-                                <span class="activity-time">2 minutes ago</span>
-                            </div>
-                        </div>
-                        <div class="activity-item">
-                            <div class="activity-avatar" style="background: linear-gradient(135deg, var(--gold), var(--amber));">AS</div>
-                            <div class="activity-content">
-                                <p class="activity-text"><strong>Anna Smith</strong> submitted a support ticket</p>
-                                <span class="activity-time">15 minutes ago</span>
-                            </div>
-                        </div>
-                        <div class="activity-item">
-                            <div class="activity-avatar" style="background: linear-gradient(135deg, var(--coral), var(--gold));">MJ</div>
-                            <div class="activity-content">
-                                <p class="activity-text"><strong>Mike Johnson</strong> upgraded subscription</p>
-                                <span class="activity-time">1 hour ago</span>
-                            </div>
-                        </div>
-                        <div class="activity-item">
-                            <div class="activity-avatar" style="background: linear-gradient(135deg, var(--success), var(--emerald));">EW</div>
-                            <div class="activity-content">
-                                <p class="activity-text"><strong>Emily White</strong> completed onboarding</p>
-                                <span class="activity-time">2 hours ago</span>
-                            </div>
-                        </div>
-                        <div class="activity-item">
-                            <div class="activity-avatar" style="background: linear-gradient(135deg, var(--warning), var(--gold));">RB</div>
-                            <div class="activity-content">
-                                <p class="activity-text"><strong>Robert Brown</strong> requested refund</p>
-                                <span class="activity-time">3 hours ago</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                
+                
 
                 <!-- Data Table -->
                 <div class="glass-card table-card">
@@ -230,54 +146,32 @@
                             <button class="card-btn">Export</button>
                         </div>
                     </div>
+                    
                     <div class="table-wrapper">
                         <table class="data-table">
                             <thead>
                                 <tr>
                                     <th>Name</th>
-                                    <th>Matiere</th>
-                                    <th>Date</th>
+                                    <th>Matieres</th>
+                                    <th>Annee</th>
                                     <th>Status</th>
-                                    <th>Amount</th>
+                                    <th>Classe</th>
                                 </tr>
                             </thead>
+                            
                             <tbody>
+                                {% for prof in enseignants %}
+        
                                 <tr>
-                                    <td><div class="table-user"><div class="table-avatar" style="background: linear-gradient(135deg, var(--emerald-light), var(--emerald));">JD</div><div class="table-user-info"><span class="table-user-name">John Doe</span><span class="table-user-email">john@example.com</span></div></div></td>
-                                    <td>Premium Plan</td>
-                                    <td>Jan 15, 2025</td>
+                                    <td><div class="table-user"><div class="table-avatar" style="background: linear-gradient(135deg, var(--emerald), var(--gold));">{{ prof.enseignant.first_name|slice:":1"|upper }}-{{ prof.enseignant.last_name|slice:":1"|upper }}</div><div class="table-user-info"><span class="table-user-name">{{prof.enseignant.get_full_name}} </span><span class="table-user-email">{{ prof.enseignant.email }}</span></div></div></td>
+                                    <td>{{ prof.matiere.nom }} ({{ prof.matiere.coefficient }})</td>
+                                    <td>{{ prof.matiere.annee.libelle }}</td>
                                     <td><span class="status-badge completed">Completed</span></td>
-                                    <td><span class="table-amount">$299.00</span></td>
+                                    <td><span class="table-amount">{{ prof.classe.nom }}</span></td>
                                 </tr>
-                                <tr>
-                                    <td><div class="table-user"><div class="table-avatar" style="background: linear-gradient(135deg, var(--gold), var(--amber));">AS</div><div class="table-user-info"><span class="table-user-name">Anna Smith</span><span class="table-user-email">anna@example.com</span></div></div></td>
-                                    <td>Enterprise License</td>
-                                    <td>Jan 14, 2025</td>
-                                    <td><span class="status-badge processing">Processing</span></td>
-                                    <td><span class="table-amount">$1,499.00</span></td>
-                                </tr>
-                                <tr>
-                                    <td><div class="table-user"><div class="table-avatar" style="background: linear-gradient(135deg, var(--success), var(--emerald));">MJ</div><div class="table-user-info"><span class="table-user-name">Mike Johnson</span><span class="table-user-email">mike@example.com</span></div></div></td>
-                                    <td>Team Bundle</td>
-                                    <td>Jan 13, 2025</td>
-                                    <td><span class="status-badge completed">Completed</span></td>
-                                    <td><span class="table-amount">$599.00</span></td>
-                                </tr>
-                                <tr>
-                                    <td><div class="table-user"><div class="table-avatar" style="background: linear-gradient(135deg, var(--coral), var(--gold));">EW</div><div class="table-user-info"><span class="table-user-name">Emily White</span><span class="table-user-email">emily@example.com</span></div></div></td>
-                                    <td>Starter Plan</td>
-                                    <td>Jan 12, 2025</td>
-                                    <td><span class="status-badge pending">Pending</span></td>
-                                    <td><span class="table-amount">$49.00</span></td>
-                                </tr>
-                                <tr>
-                                    <td><div class="table-user"><div class="table-avatar" style="background: linear-gradient(135deg, var(--emerald), var(--gold));">RB</div><div class="table-user-info"><span class="table-user-name">Robert Brown</span><span class="table-user-email">robert@example.com</span></div></div></td>
-                                    <td>Pro Annual</td>
-                                    <td>Jan 11, 2025</td>
-                                    <td><span class="status-badge completed">Completed</span></td>
-                                    <td><span class="table-amount">$199.00</span></td>
-                                </tr>
+                                 {% endfor %}
                             </tbody>
+                           
                         </table>
                     </div>
                 </div>
@@ -286,50 +180,36 @@
             <!-- Bottom Grid -->
             <section class="bottom-grid">
                 <!-- Calendar Widget -->
-                <div class="glass-card">
-                    <div class="calendar-header">
-                        <h2 class="card-title">January 2025</h2>
-                        <div class="calendar-nav">
-                            <button class="calendar-nav-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>
-                            <button class="calendar-nav-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></button>
-                        </div>
-                    </div>
-                    <div class="calendar-grid">
-                        <span class="calendar-day-name">Sun</span><span class="calendar-day-name">Mon</span><span class="calendar-day-name">Tue</span><span class="calendar-day-name">Wed</span><span class="calendar-day-name">Thu</span><span class="calendar-day-name">Fri</span><span class="calendar-day-name">Sat</span>
-                        <span class="calendar-day other-month">29</span><span class="calendar-day other-month">30</span><span class="calendar-day other-month">31</span><span class="calendar-day today">1</span><span class="calendar-day">2</span><span class="calendar-day">3</span><span class="calendar-day">4</span>
-                        <span class="calendar-day">5</span><span class="calendar-day">6</span><span class="calendar-day">7</span><span class="calendar-day">8</span><span class="calendar-day">9</span><span class="calendar-day">10</span><span class="calendar-day">11</span>
-                        <span class="calendar-day">12</span><span class="calendar-day">13</span><span class="calendar-day">14</span><span class="calendar-day">15</span><span class="calendar-day">16</span><span class="calendar-day">17</span><span class="calendar-day">18</span>
-                        <span class="calendar-day">19</span><span class="calendar-day">20</span><span class="calendar-day">21</span><span class="calendar-day">22</span><span class="calendar-day">23</span><span class="calendar-day">24</span><span class="calendar-day">25</span>
-                        <span class="calendar-day">26</span><span class="calendar-day">27</span><span class="calendar-day">28</span><span class="calendar-day">29</span><span class="calendar-day">30</span><span class="calendar-day">31</span><span class="calendar-day other-month">1</span>
-                    </div>
-                </div>
+                
 
                 <!-- Donut Chart -->
-                <div class="glass-card">
+                <!-- Activity Feed -->
+                <div class="glass-card activity-card">
                     <div class="card-header">
                         <div>
-                            <h2 class="card-title">Traffic Sources</h2>
-                            <p class="card-subtitle">User acquisition breakdown</p>
+                            <h2 class="card-title">Recent Activity</h2>
+                            <p class="card-subtitle">Dernières actions des enseignants</p>
                         </div>
                     </div>
-                    <div class="donut-container">
-                        <div class="donut-chart">
-                            <svg width="140" height="140" viewBox="0 0 140 140">
-                                <circle class="donut-bg" cx="70" cy="70" r="54"/>
-                                <circle class="donut-segment" cx="70" cy="70" r="54" stroke="var(--emerald-light)" stroke-dasharray="169.6 339.3" stroke-dashoffset="0"/>
-                                <circle class="donut-segment" cx="70" cy="70" r="54" stroke="var(--gold)" stroke-dasharray="101.8 339.3" stroke-dashoffset="-169.6"/>
-                                <circle class="donut-segment" cx="70" cy="70" r="54" stroke="var(--coral)" stroke-dasharray="67.9 339.3" stroke-dashoffset="-271.4"/>
-                            </svg>
-                            <div class="donut-center">
-                                <div class="donut-value">24.5K</div>
-                                <div class="donut-label">Visitors</div>
+                    <div class="activity-list">
+                         {% for activity in recent_activities %}
+                        
+                        
+                        <div class="activity-item">
+                            <div class="activity-avatar" style="background: linear-gradient(135deg, var(--coral), var(--gold));">  {{ activity.saisi_par.first_name|slice:":1" }}{{ activity.saisi_par.last_name|slice:":1" }}</div>
+
+                            <div class="activity-content">
+                               <p class="activity-text">
+                    <strong>{{ activity.saisi_par.get_full_name }}</strong>
+                    a saisi la note {{ activity.note }} pour {{ activity.etudiant.get_full_name }} en {{ activity.matiere.nom }}
+                </p>
+                               <span class="activity-time">{{ activity.created|timesince }} ago</span>
                             </div>
                         </div>
-                        <div class="donut-legend">
-                            <div class="legend-item"><span class="legend-color cyan"></span><span>Organic Search (50%)</span></div>
-                            <div class="legend-item"><span class="legend-color magenta"></span><span>Social Media (30%)</span></div>
-                            <div class="legend-item"><span class="legend-color purple"></span><span>Direct Traffic (20%)</span></div>
-                        </div>
+                        
+                         {% empty %}
+                      <p>Aucune activité récente.</p>
+                                {% endfor %}
                     </div>
                 </div>
 

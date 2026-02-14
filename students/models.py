@@ -182,7 +182,7 @@ class Note(TimeStampedModel):
     periode = models.ForeignKey(Periode, on_delete=models.CASCADE)
     note = models.DecimalField(max_digits=4, decimal_places=2, validators=[MinValueValidator(0), MaxValueValidator(20)])
     appreciation = models.TextField(blank=True)
-    saisi_par = models.ForeignKey(User, on_delete=models.PROTECT, related_name="notes_saisies")
+    saisi_par = models.ForeignKey( User, on_delete=models.PROTECT, related_name="notes_saisies", limit_choices_to={'role': Role.ENSEIGNANT} )
 
     class Meta:
         verbose_name = "Note"
