@@ -5,27 +5,8 @@ from django.core.exceptions import ValidationError
 from model_utils.models import TimeStampedModel
 from phonenumber_field.modelfields import PhoneNumberField
 from datetime import datetime
+from global_data.enum import Role,StatutTache,StatutEnvoi
 
-
-# ------------------------------
-# Enums et choix partagés
-# ------------------------------
-class Role(models.TextChoices):
-    ADMINISTRATEUR = "ADMIN", "Administrateur"
-    ENSEIGNANT = "PROF", "Enseignant"
-    ETUDIANT = "ETUD", "Étudiant"
-    INVITE = "INV", "Invite" 
-
-class StatutTache(models.TextChoices):
-    EN_ATTENTE = "ATTENTE", "En attente"
-    EN_TRAITEMENT = "TRAITEMENT", "En cours de traitement"
-    TERMINE = "TERMINE", "Terminé"
-    ECHEC = "ECHEC", "Échec"
-
-class StatutEnvoi(models.TextChoices):
-    NON_ENVOYE = "NON_ENVOYE", "Non envoyé"
-    ENVOYE = "ENVOYE", "Envoyé"
-    ECHEC_ENVOI = "ECHEC_ENVOI", "Échec de l'envoi"
 
 
 # ------------------------------
@@ -93,7 +74,7 @@ class AnneeAcademique(TimeStampedModel):
 
 
 class Classe(TimeStampedModel):
-    nom = models.CharField(max_length=10) # Ex: "3ème A", "Tle S2"
+    nom = models.CharField(max_length=80) # Ex: "3ème A", "Tle S2"
     niveau = models.CharField(max_length=50) # Ex: "Troisième", "Terminale S"
     annee = models.ForeignKey(AnneeAcademique, on_delete=models.CASCADE, related_name="classes")
 

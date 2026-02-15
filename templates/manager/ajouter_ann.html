@@ -19,7 +19,7 @@
             <!-- Top Navbar -->
             <nav class="navbar">
                 <div class="page-header">
-                    <a href="{% url 'user' %}"><h1 class="page-title">ajout des classes universitaire</h1></a>
+                   <a href="{% url 'user' %}"> <h1 class="page-title">ajout des Années Scolaire</h1></a>
                     <div class="page-breadcrumb">
                         <a href="">Dashboard</a>
                         <span>/</span>
@@ -49,10 +49,10 @@
                         <div style="text-align: center; width: 100%;">
                             <h2 class="card-title" style="font-size: 28px; margin-bottom: 10px;">
                                 <i class="fas fa-user-check" style="margin-right: 10px; animation: bounce 2s infinite;"></i>
-                                AJOUT DES CLASSES
+                                Gestion des annees Academiques
                             </h2>
                             <p class="card-subtitle" style="font-size: 16px;">
-                                Gestion des classe  | Administration scolaire
+                                Gestion des Années | Administration scolaire
                             </p>
                         </div>
                     </div>
@@ -60,8 +60,8 @@
                     <!-- Notice Exonération -->
                     <div style="background: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; padding: 20px; border-radius: 10px; margin-bottom: 30px; text-align: center;">
                         <p style="margin: 0; font-size: 15px;">
-                            <strong>NB :</strong> Si vous-voulez ajouter une Années, cliquer 
-                            <a href="{% url 'annee' %}" class="card-btn" style="display: inline-block; margin: 0 8px; padding: 8px 16px;">
+                            <strong>NB :</strong> Si vous-voulez ajouter une Classe, cliquer 
+                            <a href="{% url 'classe' %}" class="card-btn" style="display: inline-block; margin: 0 8px; padding: 8px 16px;">
                                 ici
                             </a> 
                             pour finaliser .
@@ -71,46 +71,58 @@
                     <!-- Form -->
                    <form method="POST">
     {% csrf_token %}
+
+    {% if messages %}
+        {% for message in messages %}
+            <div style="padding: 12px; margin-bottom: 15px; border-radius: 8px; background: rgba(0,255,0,0.1);">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
     <div style="display: flex; flex-direction: column; gap: 25px; max-width: 600px; margin: 0 auto;">
 
-        <!-- Nom de la classe -->
+        <!-- Libellé -->
         <div>
-            <label>Nom de la classe <span style="color: #ef4444;">*</span></label>
-            <input type="text" name="nom" required
-                   placeholder="Ex: 3ème A"
-                   style="width: 100%; padding: 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);"/>
+            <label>Libellé de l'année <span style="color: red;">*</span></label>
+            <input type="text" name="libelle" required
+                   placeholder="Ex: 2024-2025"
+                   style="width: 100%; padding: 14px; border-radius: 10px;"/>
         </div>
 
-        <!-- Niveau -->
+        <!-- Date début -->
         <div>
-            <label>Niveau <span style="color: #ef4444;">*</span></label>
-            <input type="text" name="niveau" required
-                   placeholder="Ex: Troisième"
-                   style="width: 100%; padding: 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);"/>
+            <label>Date de début <span style="color: red;">*</span></label>
+            <input type="date" name="date_debut" required
+                   style="width: 100%; padding: 14px; border-radius: 10px;"/>
         </div>
 
-        <!-- Année universitaire -->
+        <!-- Date fin -->
         <div>
-            <label>Année universitaire <span style="color: #ef4444;">*</span></label>
-            <select name="annee" required
-                    style="width: 100%; padding: 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);">
-                <option value="">-- Sélectionner une année --</option>
-                {% for annee in annees %}
-                    <option value="{{ annee.id }}">{{ annee.libelle }}</option>
-                {% endfor %}
-            </select>
+            <label>Date de fin <span style="color: red;">*</span></label>
+            <input type="date" name="date_fin" required
+                   style="width: 100%; padding: 14px; border-radius: 10px;"/>
+        </div>
+
+        <!-- Année active -->
+        <div>
+            <label>
+                <input type="checkbox" name="actif">
+                Définir comme année active
+            </label>
         </div>
 
         <!-- Submit -->
         <div>
             <button type="submit"
-                    style="width: 100%; padding: 16px; font-weight: 600; background: linear-gradient(135deg, var(--emerald-light), var(--emerald)); border: none; cursor: pointer;">
-                AJOUTER CLASSE
+                    style="width: 100%; padding: 16px; font-weight: 600; cursor: pointer;">
+                AJOUTER ANNÉE
             </button>
         </div>
 
     </div>
 </form>
+
 
                 </div>
             </section>

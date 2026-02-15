@@ -6,6 +6,7 @@ from django.utils.timezone import now
 from django.utils import timezone
 from django.views import View
 from django.contrib import messages
+from django.core.exceptions import ValidationError
 
 # Create your views here.
 from ..tasks import index 
@@ -31,7 +32,7 @@ class Home_index(View):
     def get(self, request):
         affectations = AffectationEnseignant.objects.select_related('enseignant', 'classe', 'matiere').all()
         enseignants = User.objects.filter(role=Role.ENSEIGNANT)
-        users_count = User.objects.count()
+        inscription = Inscription.objects.count()
         classe= Classe.objects.count()
         # nombre total
         total_enseignants = enseignants.count() 
@@ -41,7 +42,11 @@ class Home_index(View):
                             .order_by('-created')[:10]  # limite à 10 dernières activités
 
        
-        context = {'enseignants': affectations, 'total':total_enseignants, 'recent_activities': recent_activities, }
+        context = {'enseignants': affectations, 
+                   'total':total_enseignants,
+                   'recent_activities': recent_activities,
+                   'inscrit': inscription,
+                   'classe':classe}
         return render(request, self.templates, context)
 
 
@@ -107,7 +112,8 @@ class Home_etudiant(View):
     
     def get(self, request):
         inscriptions = Inscription.objects.select_related('etudiant', 'classe').all()
-
+        etu_inscrit = Inscription.objects.count()
+        invite = User.objects.filter(role=Role.INVITE).count()
         for inscription in inscriptions:
         # Récupérer toutes les affectations pour la classe
             affectations = AffectationEnseignant.objects.filter(classe=inscription.classe).select_related('enseignant')
@@ -120,7 +126,7 @@ class Home_etudiant(View):
             matieres = [a.matiere.nom for a in affectations]
             inscription.matieres = matieres
         
-            context = { 'etu_inscrit': inscriptions,}
+            context = { 'etu_inscrit': inscriptions, 'inscrit': etu_inscrit, 'visiteurs':invite}
         return render(request, self.templates, context)
 
 
@@ -138,7 +144,7 @@ class inscrit_etu(View):
         etudiants = User.objects.filter(role=Role.INVITE).order_by('last_name')
          
         classes = Classe.objects.all().order_by('nom')
-        annees = AnneeAcademique.objects.all().order_by('date_debut')
+        annees = AnneeAcademique.objects.filter(actif=True).order_by('libelle')
         context = {
             'etudiants': etudiants,
             'classes': classes,
@@ -232,6 +238,79 @@ class ajouter_cls(View):
     templates=  'manager/ajouter_cls.html'
     
     def get(self, request):
+        
+         annees = AnneeAcademique.objects.filter(actif=True).order_by('libelle')
+         context = {
+            'annees': annees
+        }
+         return render(request, self.templates, context)
+    
+    
+    def post(self, request):
+        nom = request.POST.get('nom')
+        niveau = request.POST.get('niveau')
+        annee_id = request.POST.get('annee')
+
+        if not nom or not niveau or not annee_id:
+            messages.error(request, "Tous les champs sont obligatoires !")
+            return redirect('ajout_classe')  # remplace par ton nom d'URL
+
+        try:
+            annee = AnneeAcademique.objects.get(id=annee_id)
+        except AnneeAcademique.DoesNotExist:
+            messages.error(request, "L'année sélectionnée est invalide !")
+            return redirect('classe')
+
+        # Vérifier l'unicité (nom + année)
+        if Classe.objects.filter(nom=nom, annee=annee).exists():
+            messages.error(request, f"La classe '{nom}' existe déjà pour l'année {annee.libelle}.")
+            return redirect('classe')
+
+        # Création
+        Classe.objects.create(
+            nom=nom,
+            niveau=niveau,
+            annee=annee
+        )
+
+        messages.success(request, f"La classe '{nom}' a été ajoutée avec succès !")
+        return redirect('user')
+    
+    
+    
+
+
+class Ajouter_annee(View):
+    templates=  'manager/ajouter_ann.html'
+    
+    def get(self, request):
        
         context = {}
         return render(request, self.templates, context)
+    
+    
+    def post(self, request, *args, **kwargs):
+
+        libelle = request.POST.get("libelle")
+        date_debut = request.POST.get("date_debut")
+        date_fin = request.POST.get("date_fin")
+        actif = True if request.POST.get("actif") else False
+
+        annee = AnneeAcademique(
+            libelle=libelle,
+            date_debut=date_debut,
+            date_fin=date_fin,
+            actif=actif
+        )
+
+        try:
+            annee.full_clean()   # exécute clean()
+            annee.save()
+            messages.success(request, "Année académique ajoutée avec succès !")
+            return redirect("user")
+
+        except ValidationError as e:
+            for error in e.messages:
+                messages.error(request, error)
+
+        return render(request, self.templates)

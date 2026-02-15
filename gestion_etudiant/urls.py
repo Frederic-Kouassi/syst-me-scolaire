@@ -14,6 +14,8 @@ urlpatterns = [
     path('setting/',  Home_setting.as_view(), name="settings"),
      path('inbox',  Home_inbox.as_view(), name="inbox"),
      path('etudiant/', Home_etudiant.as_view(), name="etudiant"),
+     
+      path('annee', Ajouter_annee.as_view(), name="annee"),
 
   
      path('inscrit/', inscrit_etu.as_view(), name="inscrit"),
