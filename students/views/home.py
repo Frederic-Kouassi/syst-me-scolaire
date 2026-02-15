@@ -11,85 +11,120 @@ from django.contrib import messages
 from ..tasks import index 
 
  
-
-
-def texte(request):
+ 
+ 
+class Home_texte(View):
+    templates=  'global_data/texte.html'
     
-   
-   
-    return render(request, 'global_data/texte.html', {'result': 'redis'})
+    def get(self, request):
+       
+        context = {'result': 'redis'}
+        return render(request, self.templates, context)
+
+ 
 
 
-
-def index(request):
-    affectations = AffectationEnseignant.objects.select_related('enseignant', 'classe', 'matiere').all()
-    enseignants = User.objects.filter(role=Role.ENSEIGNANT)
-    users_count = User.objects.count()
-    classe= Classe.objects.count()
-    # nombre total
-    total_enseignants = enseignants.count() 
+    
+class Home_index(View):
+    templates=  'index.html'
+    
+    def get(self, request):
+        affectations = AffectationEnseignant.objects.select_related('enseignant', 'classe', 'matiere').all()
+        enseignants = User.objects.filter(role=Role.ENSEIGNANT)
+        users_count = User.objects.count()
+        classe= Classe.objects.count()
+        # nombre total
+        total_enseignants = enseignants.count() 
     # Récupérer les dernières activités (notes saisies) par les enseignants
-    recent_activities = Note.objects.select_related('saisi_par', 'matiere', 'etudiant') \
+        recent_activities = Note.objects.select_related('saisi_par', 'matiere', 'etudiant') \
                             .filter(saisi_par__role='PROF', created__gte=now()-timezone.timedelta(days=1)) \
                             .order_by('-created')[:10]  # limite à 10 dernières activités
 
-    return render(request, 'index.html', {'enseignants': affectations, 'total':total_enseignants, 'recent_activities': recent_activities, })
+       
+        context = {'enseignants': affectations, 'total':total_enseignants, 'recent_activities': recent_activities, }
+        return render(request, self.templates, context)
 
 
-def user(request):
-    all_users = User.objects.all()
-    users_count = User.objects.all().count() 
-    invite = User.objects.filter(role=Role.INVITE).count()
-    enseignant = User.objects.filter(role=Role.ENSEIGNANT).count()
+
+
+
+class Home_user(View):
+    templates=   'global_data/users.html'
     
-    inscription = Inscription.objects.count()
+    def get(self,request):
+        all_users = User.objects.all()
+        users_count = User.objects.all().count() 
+        invite = User.objects.filter(role=Role.INVITE).count()
+        enseignant = User.objects.filter(role=Role.ENSEIGNANT).count()
     
-    return render(
-        request, 
-        'global_data/users.html', 
-        {
-            'users': all_users,
-            'user_count': users_count,
-            'inscrit': inscription,
-            'invite': invite,
-            'matiere': enseignant
-        }
-    )
-
-
-def analytic(request):
-    return render(request, 'global_data/analytics.html')
+        inscription = Inscription.objects.count()
+    
+        context = { 'users': all_users,
+                'user_count': users_count,
+                'inscrit': inscription,
+                'invite': invite,
+                'matiere': enseignant}
+        return render(request, self.templates, context)
 
 
 
-def setting(request):
-    return render(request, 'global_data/settings.html')
+class Home_analytic(View):
+    templates=  'global_data/analytics.html'
+    
+    def get(self, request):
+       
+        context = {}
+        return render(request, self.templates, context)
+
+ 
 
 
-def inbox(request):
-    return render(request, 'global_data/inbox.html')
+
+class Home_setting(View):
+    templates=  'global_data/settings.html'
+    
+    def get(self, request):
+       
+        context = {}
+        return render(request, self.templates, context)
+
+ 
+class Home_inbox(View):
+    templates=  'global_data/inbox.html'
+    
+    def get(self, request):
+       
+        context = {}
+        return render(request, self.templates, context)
 
 
 
 
-def etudiant(request):
-    inscriptions = Inscription.objects.select_related('etudiant', 'classe').all()
 
-    for inscription in inscriptions:
+ 
+class Home_etudiant(View):
+    templates=  'global_data/etudiant.html'
+    
+    def get(self, request):
+        inscriptions = Inscription.objects.select_related('etudiant', 'classe').all()
+
+        for inscription in inscriptions:
         # Récupérer toutes les affectations pour la classe
-        affectations = AffectationEnseignant.objects.filter(classe=inscription.classe).select_related('enseignant')
+            affectations = AffectationEnseignant.objects.filter(classe=inscription.classe).select_related('enseignant')
 
-        # Liste des noms d'enseignants uniques
-        enseignants = list({f"{a.enseignant.first_name} {a.enseignant.last_name}" for a in affectations})
-        inscription.enseignants = enseignants
+            # Liste des noms d'enseignants uniques
+            enseignants = list({f"{a.enseignant.first_name} {a.enseignant.last_name}" for a in affectations})
+            inscription.enseignants = enseignants
 
-        # On peut aussi garder les matières si nécessaire
-        matieres = [a.matiere.nom for a in affectations]
-        inscription.matieres = matieres
+            # On peut aussi garder les matières si nécessaire
+            matieres = [a.matiere.nom for a in affectations]
+            inscription.matieres = matieres
+        
+            context = { 'etu_inscrit': inscriptions,}
+        return render(request, self.templates, context)
 
-    return render(request, 'global_data/etudiant.html', {
-        'etu_inscrit': inscriptions,
-    })
+
+
 
 
 
@@ -110,7 +145,6 @@ class inscrit_etu(View):
             'annees': annees
         }
         return render(request, self.templates, context)
-    
     
     def post(self, request):
         etudiant_id = request.POST.get('etudiant')
@@ -133,8 +167,14 @@ class inscrit_etu(View):
             classe=classe,
             annee=classe.annee
         )
-        messages.success(request, "Inscription effectuée avec succès !")
+        #  Changer le rôle de l'utilisateur en ETUDIANT # adapte le chemin si nécessaire
+        user = User.objects.get(id=etudiant_id)
+        user.role = Role.ETUDIANT
+        user.save()  # n'oublie pas de sauvegarder !
+
+        messages.success(request, "Inscription effectuée avec succès et rôle défini sur Étudiant !")
         return redirect('user')
+
 
 
 class affectation_ens(View):
@@ -150,6 +190,41 @@ class affectation_ens(View):
             'classes': classes
         }
         return render(request, self.templates, context)
+    
+    
+    def post(self, request):
+        enseignant_id = request.POST.get('enseignant')
+        matiere_id = request.POST.get('matiere')
+        classe_id = request.POST.get('classe')
+
+        if not enseignant_id or not matiere_id or not classe_id:
+            messages.error(request, "Tous les champs sont obligatoires !")
+            return redirect('affectation')
+
+        # Récupération des objets
+        enseignant = User.objects.get(id=enseignant_id)
+        matiere = Matiere.objects.get(id=matiere_id)
+        classe = Classe.objects.get(id=classe_id)
+
+        # Vérifier si l'affectation existe déjà
+        if AffectationEnseignant.objects.filter(enseignant=enseignant, matiere=matiere, classe=classe).exists():
+            messages.error(request, "Cet enseignant est déjà affecté à cette matière et classe !")
+            return redirect('affectation')
+
+        # Création de l'affectation
+        AffectationEnseignant.objects.create(
+            enseignant=enseignant,
+            matiere=matiere,
+            classe=classe
+        )
+
+        #  Mettre le rôle de l'utilisateur en ENSEIGNANT
+        enseignant.role = Role.ENSEIGNANT
+        enseignant.save()
+
+        messages.success(request, "Affectation effectuée avec succès et rôle défini sur Enseignant !")
+        return redirect('user')
+
     
     
     

@@ -36,6 +36,7 @@ class User(AbstractUser):
     telephone = PhoneNumberField(blank=True, null=True)
     email_parent = models.EmailField("Email du parent", blank=True, null=True)
     date=models.DateTimeField(default=datetime.now)
+    accepted_terms = models.BooleanField(default=False)
     
     # Social Links
     

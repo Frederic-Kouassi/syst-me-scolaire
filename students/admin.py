@@ -4,18 +4,28 @@ from .models import User, Classe, Matiere, AnneeAcademique, Periode, Inscription
 
 # -----------------------------
 # Custom User
+# -----from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from .models import User, Classe, Matiere, AnneeAcademique, Periode, Inscription, AffectationEnseignant, Note, Bulletin
+
+# -----------------------------
+# Custom User
 # -----------------------------
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
-    # Champs affichés dans l'admin
-    list_display = ('username', 'email', 'first_name', 'last_name', 'role', 'is_staff')
+    # Champs affichés dans la liste des utilisateurs
+    list_display = ('username', 'email', 'first_name', 'last_name', 'role', 'accepted_terms', 'is_staff')
     list_filter = ('role', 'is_staff', 'is_superuser', 'is_active')
+    
+    # Champs affichés dans le détail d'un utilisateur
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
         ('Informations personnelles', {'fields': ('first_name', 'last_name', 'email', 'telephone', 'email_parent')}),
         ('Permissions', {'fields': ('role', 'is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
+        ('Conditions d\'utilisation', {'fields': ('accepted_terms',)}),  # ⚡ ajouté ici
         ('Dates importantes', {'fields': ('last_login', 'date_joined')}),
     )
+
     search_fields = ('username', 'first_name', 'last_name', 'email')
     ordering = ('username',)
     filter_horizontal = ('groups', 'user_permissions')

@@ -3,6 +3,9 @@ from django.views import View
 from django.contrib.auth import login, authenticate, logout
 from django.contrib import messages
 from django.urls import reverse
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
+
 
 from students.models import User
 
@@ -23,10 +26,24 @@ class RegisterView(View):
         email = request.POST.get('email')
         password = request.POST.get('password')
         confirm_password = request.POST.get('confirm_password')
+        accepted_terms = request.POST.get('accepted_terms')
 
-        # Vérification des mots de passe
+        if not accepted_terms:
+            messages.error(request, "You must accept the Terms & Conditions.")
+            return render(request, 'Auth/register.html')
+
+
+        # Vérification des mots de passe identiques
         if password != confirm_password:
             messages.error(request, "Passwords do not match.")
+            return render(request, 'Auth/register.html')
+
+        # ✅ Validation sécurité mot de passe
+        try:
+            validate_password(password)
+        except ValidationError as e:
+            for error in e.messages:
+                messages.error(request, error)
             return render(request, 'Auth/register.html')
 
         # Vérification email existant
@@ -41,14 +58,13 @@ class RegisterView(View):
 
         # Création utilisateur
         user = User.objects.create_user(
-            username=username,   
+            username=username,
             email=email,
             password=password,
             first_name=first_name,
             last_name=last_name,
+            accepted_terms=True,
         )
-
-        user.save()
 
         messages.success(request, "Account created successfully.")
         return redirect('login')
