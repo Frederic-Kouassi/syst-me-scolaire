@@ -19,6 +19,9 @@ class User(AbstractUser):
     date=models.DateTimeField(default=datetime.now)
     accepted_terms = models.BooleanField(default=False)
     
+    verification_code = models.CharField(max_length=6, blank=True, null=True)
+
+    
     # Social Links
     
     linkedin_url = models.URLField(blank=True, verbose_name="LinkedIn URL")

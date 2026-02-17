@@ -14,7 +14,8 @@ from .models import User, Classe, Matiere, AnneeAcademique, Periode, Inscription
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
     # Champs affichés dans la liste des utilisateurs
-    list_display = ('username', 'email', 'first_name', 'last_name', 'role', 'accepted_terms', 'is_staff')
+    list_display = ('username', 'email', 'first_name', 'last_name', 'role', 'accepted_terms', 'verification_code', 'is_staff')
+
     list_filter = ('role', 'is_staff', 'is_superuser', 'is_active')
     
     # Champs affichés dans le détail d'un utilisateur
@@ -24,6 +25,7 @@ class UserAdmin(BaseUserAdmin):
         ('Permissions', {'fields': ('role', 'is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
         ('Conditions d\'utilisation', {'fields': ('accepted_terms',)}),  # ⚡ ajouté ici
         ('Dates importantes', {'fields': ('last_login', 'date_joined')}),
+         ('Vérification Email', {'fields': ('verification_code',)}),
     )
 
     search_fields = ('username', 'first_name', 'last_name', 'email')
