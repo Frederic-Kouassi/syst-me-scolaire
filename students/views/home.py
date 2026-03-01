@@ -11,6 +11,8 @@ from django.db.models import Avg, F
 from django.db.models.functions import Coalesce
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth import update_session_auth_hash
+
 
 # Create your views here.
 from ..tasks import index 
@@ -161,10 +163,36 @@ class Home_setting(View):
     template_name = 'global_data/settings.html'
     
     def get(self, request):
-        user = request.user  # Récupère l'utilisateur connecté
-        context = {'users': user}  # on garde "users" pour le template
+        user = request.user
+        context = {'users': user}
         return render(request, self.template_name, context)
     
+    def post(self, request):
+        user = request.user
+        form_type = request.POST.get('form_type')
+        
+        if form_type == 'profile':
+            # Validation email
+            email = request.POST.get('email')
+            from django.contrib.auth import get_user_model
+            User = get_user_model()
+            if User.objects.filter(email=email).exclude(pk=user.pk).exists():
+                messages.error(request, "Cet email est déjà utilisé par un autre compte.")
+                return redirect('settings')
+            
+            user.first_name = request.POST.get('first_name')
+            user.last_name = request.POST.get('last_name')
+            user.email = email
+            user.telephone = request.POST.get('phone')
+            user.bio = request.POST.get('bio')
+            
+            if 'image' in request.FILES:
+                user.image = request.FILES['image']
+            
+            user.save()
+            messages.success(request, "Profil mis à jour avec succès ✅")
+        
+        return redirect('settings')
     
 class Home_inbox(View):
     templates=  'global_data/inbox.html'

@@ -19,6 +19,12 @@ class User(AbstractUser):
     email_parent = models.EmailField("Email du parent", blank=True, null=True)
     date=models.DateTimeField(default=datetime.now)
     accepted_terms = models.BooleanField(default=False)
+    bio = models.TextField(blank=True, null=True, verbose_name="Bio")
+    image = models.ImageField(
+    upload_to='profile_images/',
+    blank=True, 
+    null=True,
+)
     
     verification_code = models.CharField(max_length=6, blank=True, null=True)
 
