@@ -9,6 +9,7 @@ from global_data.enum import Role,StatutTache,StatutEnvoi
 
 
 
+
 # ------------------------------
 # Modèle Utilisateur de base
 
@@ -21,7 +22,11 @@ class User(AbstractUser):
     
     verification_code = models.CharField(max_length=6, blank=True, null=True)
 
-    
+    image = models.ImageField(
+        upload_to='profile_images/',  # dossier où les images seront stockées
+        blank=True, 
+        null=True,
+    )
     # Social Links
     
     linkedin_url = models.URLField(blank=True, verbose_name="LinkedIn URL")
@@ -124,17 +129,17 @@ class Periode(TimeStampedModel):
 
 # ------------------------------
 # Relations d'affectation
+
 # ------------------------------
+
 class Inscription(TimeStampedModel):
-    """ Lien entre un étudiant et sa classe pour une année donnée.
-    IMPORTANT : On ne met JAMAIS de champ classe sur l'étudiant : un étudiant change de classe chaque année """
     etudiant = models.ForeignKey(User, on_delete=models.CASCADE, limit_choices_to={'role': Role.ETUDIANT}, related_name="inscriptions")
     classe = models.ForeignKey(Classe, on_delete=models.CASCADE, related_name="inscriptions")
     annee = models.ForeignKey(AnneeAcademique, on_delete=models.CASCADE)
 
     class Meta:
         verbose_name = "Inscription"
-        unique_together = ['etudiant', 'annee'] # Un étudiant ne peut être inscrit qu'une fois par année
+        unique_together = ['etudiant', 'annee']
         ordering = ["etudiant__last_name"]
 
     def clean(self):
@@ -143,6 +148,45 @@ class Inscription(TimeStampedModel):
     def __str__(self):
         return f"{self.etudiant} - {self.classe}"
 
+    # ══════════════════════════════
+    # MOYENNE PONDÉRÉE PAR COEFFICIENT
+    # ══════════════════════════════
+    def get_moyenne(self):
+        notes = Note.objects.filter(
+            etudiant=self.etudiant,
+            matiere__annee=self.classe.annee
+        ).select_related('matiere')
+
+        if not notes.exists():
+            return None
+
+        total_points = sum(float(n.note) * float(n.matiere.coefficient) for n in notes)
+        total_coef   = sum(float(n.matiere.coefficient) for n in notes)
+
+        if total_coef == 0:
+            return None
+
+        return round(total_points / total_coef, 2)
+
+    # ══════════════════════════════
+    # NOTES PAR MATIÈRE (pour le profil)
+    # ══════════════════════════════
+    def get_notes_par_matiere(self):
+        notes = Note.objects.filter(
+            etudiant=self.etudiant,
+            matiere__annee=self.classe.annee
+        ).select_related('matiere', 'saisi_par')  # ← ajoute saisi_par
+
+        return [
+            {
+                'matiere':      n.matiere.nom,
+                'valeur':       float(n.note),
+                'coefficient':  float(n.matiere.coefficient),
+                'appreciation': n.appreciation or '',
+                'enseignant':   n.saisi_par.get_full_name() if n.saisi_par else '—',  # ← AJOUTER
+            }
+            for n in notes
+        ]
 
 class AffectationEnseignant(TimeStampedModel):
     """ Définit quel enseignant enseigne quelle matière dans quelle classe.

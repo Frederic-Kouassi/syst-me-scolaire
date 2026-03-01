@@ -1,0 +1,723 @@
+{% load static %}
+{% load tailwind_tags %}
+{% tailwind_css %}
+
+<h2 class="section-title">Découvrez l'ensemble des classes disponibles dans notre établissement pour l'année en cours.</h2>
+
+<section class="features-grid">
+    {% for classe in classes %}
+    <div class="feature-card" onclick="openModal('{{ classe.id }}', '{{ classe.nom }}', '{{ classe.niveau }}')" style="cursor:pointer;">
+        <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                <polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+        </div>
+        <h3>{{ classe.nom }}</h3>
+        <p>{{ classe.niveau }} &mdash; {{ classe.annee }}</p>
+    </div>
+    {% empty %}
+    <p style="color: var(--text-muted);">Aucune classe disponible pour le moment.</p>
+    {% endfor %}
+</section>
+
+
+<!-- ══════════════════════════════════════
+     MODAL PRINCIPALE
+══════════════════════════════════════ -->
+<div id="classeModal" class="modal-overlay" onclick="closeModal(event)">
+    <div class="modal-box" id="modalBox">
+
+        <div style="height:3px; background:linear-gradient(90deg,var(--emerald),var(--gold)); border-radius:20px 20px 0 0; margin:-32px -32px 28px;"></div>
+
+        <div class="modal-header">
+            <div>
+                <div class="modal-badge" id="modalNiveau">Niveau</div>
+                <h2 class="modal-title" id="modalNom">Nom de la classe</h2>
+            </div>
+            <button class="modal-close" onclick="closeModalForce()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- VUE 1 : Choix action -->
+        <div id="actionsView">
+            <p class="modal-subtitle">Que voulez-vous faire avec cette classe ?</p>
+            <div class="modal-actions">
+
+                <button class="modal-action-card" onclick="loadEtudiants()">
+                    <div class="modal-action-icon" style="background:rgba(52,211,153,0.12);">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="var(--emerald-light)" stroke-width="1.8">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        </svg>
+                    </div>
+                    <div class="modal-action-text">
+                        <span class="modal-action-title">Voir les étudiants</span>
+                        <span class="modal-action-desc">Liste complète avec notes, rang et moyenne</span>
+                    </div>
+                    <svg class="modal-action-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="9 18 15 12 9 6"/>
+                    </svg>
+                </button>
+
+                <button class="modal-action-card" onclick="showNoteForm()">
+                    <div class="modal-action-icon" style="background:rgba(251,191,36,0.12);">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8">
+                            <path d="M12 20h9"/>
+                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                        </svg>
+                    </div>
+                    <div class="modal-action-text">
+                        <span class="modal-action-title">Ajouter une note</span>
+                        <span class="modal-action-desc">Saisir une note pour un étudiant de cette classe</span>
+                    </div>
+                    <svg class="modal-action-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="9 18 15 12 9 6"/>
+                    </svg>
+                </button>
+
+            </div>
+        </div>
+
+        <!-- VUE 2 : Tableau étudiants -->
+        <div id="etudiantsView" style="display:none;">
+            <div class="modal-section-header">
+                <h3 class="modal-section-title">Étudiants inscrits</h3>
+                <button class="modal-back-btn" onclick="backToActions()">← Retour</button>
+            </div>
+            <div style="margin-bottom:14px;">
+                <div style="display:flex; align-items:center; gap:8px; background:rgba(255,255,255,0.04); border:1px solid var(--glass-border); border-radius:10px; padding:8px 14px;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text-muted); flex-shrink:0;">
+                        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    </svg>
+                    <input type="text" id="searchEtu" placeholder="Rechercher un étudiant..." onkeyup="filterEtu()"
+                        style="background:none; border:none; outline:none; color:var(--text-primary); font-size:13px; width:100%;">
+                </div>
+            </div>
+            <div style="overflow-x:auto; border-radius:12px; border:1px solid var(--glass-border);">
+                <table style="width:100%; border-collapse:collapse;" id="etuTable">
+                    <thead>
+                        <tr style="border-bottom:1px solid var(--glass-border); background:rgba(255,255,255,0.03);">
+                            <th style="padding:12px 16px; text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); white-space:nowrap;">Étudiant</th>
+                            <th style="padding:12px 16px; text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); white-space:nowrap;">Téléphone</th>
+                            <th style="padding:12px 16px; text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); white-space:nowrap;">Email</th>
+                            <th style="padding:12px 16px; text-align:center; font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); white-space:nowrap;">Moyenne</th>
+                            <th style="padding:12px 16px; text-align:center; font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); white-space:nowrap;">Rang</th>
+                            <th style="padding:12px 16px; text-align:center; font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); white-space:nowrap;">Profil</th>
+                        </tr>
+                    </thead>
+                    <tbody id="etuTbody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- VUE 3 : Formulaire note -->
+        <div id="noteView" style="display:none;">
+            <div class="modal-section-header">
+                <h3 class="modal-section-title">Ajouter une note</h3>
+                <button class="modal-back-btn" onclick="backToActions()">← Retour</button>
+            </div>
+
+            <form id="noteForm" onsubmit="submitNote(event)" class="note-form">
+                {% csrf_token %}
+                <input type="hidden" name="classe_id" id="noteClasseId">
+
+                <div class="form-group">
+                    <label class="form-label">Étudiant</label>
+                    <select name="etudiant" id="noteEtudiant" class="form-select" required>
+                        <option value="">-- Sélectionner un étudiant --</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Matière</label>
+                    <select name="matiere" id="noteMatiere" class="form-select" required>
+                        <option value="">-- Sélectionner une matière --</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Période</label>
+                    <select name="periode" id="notePeriode" class="form-select" required>
+                        <option value="">-- Sélectionner une période --</option>
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Note <span style="color:var(--text-muted);">(sur 20)</span></label>
+                        <input type="number" name="note" id="noteValeur" class="form-input"
+                               min="0" max="20" step="0.25" placeholder="Ex: 14.50" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Appréciation <span style="color:var(--text-muted);">(optionnel)</span></label>
+                        <input type="text" name="appreciation" class="form-input" placeholder="Bien, Assez bien...">
+                    </div>
+                </div>
+
+                <div id="noteError"   class="form-error"   style="display:none;"></div>
+                <div id="noteSuccess" class="form-success" style="display:none;"></div>
+
+                <div class="form-footer">
+                    <button type="button" class="btn-cancel" onclick="backToActions()">Annuler</button>
+                    <button type="submit" class="btn-submit" id="submitBtn">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                            <polyline points="17 21 17 13 7 13 7 21"/>
+                            <polyline points="7 3 7 8 15 8"/>
+                        </svg>
+                        Enregistrer la note
+                    </button>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     MODAL PROFIL ÉTUDIANT
+══════════════════════════════════════ -->
+<div id="studentModal" style="display:none; position:fixed; inset:0; z-index:10000; background:rgba(0,0,0,0.7); backdrop-filter:blur(8px); align-items:center; justify-content:center; padding:20px;">
+    <div style="background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:20px; width:100%; max-width:760px; max-height:90vh; overflow-y:auto; position:relative; backdrop-filter:blur(24px); box-shadow:0 30px 80px rgba(0,0,0,0.5);">
+        <div style="height:4px; background:linear-gradient(90deg,var(--emerald),var(--gold)); border-radius:20px 20px 0 0;"></div>
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:24px 28px 0;">
+            <div style="display:flex; align-items:center; gap:14px;">
+                <div id="sp-avatar" style="width:52px; height:52px; border-radius:14px; background:linear-gradient(135deg,var(--emerald),var(--gold)); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:16px; color:#000;"></div>
+                <div>
+                    <div id="sp-nom" style="font-size:1.2rem; font-weight:700; color:var(--text-primary);"></div>
+                    <div id="sp-classe" style="font-size:13px; color:var(--text-muted);"></div>
+                </div>
+            </div>
+            <button onclick="closeStudentModal()" style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.07);border:1px solid var(--glass-border);color:var(--text-primary);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;">&times;</button>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; padding:20px 28px 0;">
+            <div style="background:rgba(255,255,255,0.04);border:1px solid var(--glass-border);border-radius:12px;padding:14px;">
+                <div style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:8px;">Contact</div>
+                <div id="sp-tel"   style="font-size:13px;color:var(--text-secondary);margin-bottom:4px;"></div>
+                <div id="sp-email" style="font-size:13px;color:var(--text-secondary);word-break:break-all;"></div>
+            </div>
+            <div style="background:rgba(52,211,153,0.07);border:1px solid rgba(52,211,153,0.2);border-radius:12px;padding:14px;text-align:center;">
+                <div style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--emerald-light);margin-bottom:6px;">Moyenne générale</div>
+                <div id="sp-moyenne" style="font-size:2rem;font-weight:800;font-family:'Space Mono',monospace;color:var(--emerald-light);"></div>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">/ 20</div>
+            </div>
+            <div style="background:rgba(251,191,36,0.07);border:1px solid rgba(251,191,36,0.2);border-radius:12px;padding:14px;text-align:center;">
+                <div style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--gold);margin-bottom:6px;">Rang de classe</div>
+                <div id="sp-rang" style="font-size:2rem;font-weight:800;font-family:'Space Mono',monospace;color:var(--gold);"></div>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">classement</div>
+            </div>
+        </div>
+        <div style="padding:20px 28px 0;">
+            <div style="background:rgba(255,255,255,0.03);border:1px solid var(--glass-border);border-radius:14px;padding:20px;">
+                <div style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:16px;">Graphique des notes par matière</div>
+                <canvas id="spChart" height="160"></canvas>
+            </div>
+        </div>
+        <div style="padding:20px 28px 28px;">
+            <div style="background:rgba(255,255,255,0.03);border:1px solid var(--glass-border);border-radius:14px;overflow:hidden;">
+                <div style="padding:16px 20px;border-bottom:1px solid var(--glass-border);font-size:14px;font-weight:600;color:var(--text-primary);">Notes par matière</div>
+                <table style="width:100%;border-collapse:collapse;">
+                    <thead>
+                        <tr style="border-bottom:1px solid var(--glass-border);">
+                            <th style="padding:10px 20px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);">Matière</th>
+                            <th style="padding:10px 20px;text-align:center;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);">Note</th>
+                            <th style="padding:10px 20px;text-align:center;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);">Coef.</th>
+                            <th style="padding:10px 20px;text-align:center;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);">Appréciation</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sp-notes-body"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     STYLES
+══════════════════════════════════════ -->
+<style>
+    .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(6px); z-index:1000; align-items:center; justify-content:center; padding:20px; }
+    .modal-overlay.active { display:flex; }
+    .modal-box { background:var(--glass-bg,rgba(15,20,30,0.95)); border:1px solid var(--glass-border,rgba(255,255,255,0.1)); border-radius:20px; padding:32px; width:100%; max-width:860px; max-height:92vh; overflow-y:auto; backdrop-filter:blur(30px); animation:modalIn .3s ease; }
+    @keyframes modalIn { from{opacity:0;transform:scale(.95) translateY(16px)} to{opacity:1;transform:scale(1) translateY(0)} }
+    .modal-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px; }
+    .modal-badge { display:inline-block; padding:3px 12px; border-radius:999px; font-size:.72rem; font-weight:600; letter-spacing:.07em; text-transform:uppercase; background:rgba(52,211,153,0.1); color:var(--emerald-light); margin-bottom:8px; }
+    .modal-title { font-size:1.5rem; font-weight:700; color:var(--text-primary); }
+    .modal-close { background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:6px; color:var(--text-muted); cursor:pointer; transition:all .2s; flex-shrink:0; }
+    .modal-close:hover { background:rgba(255,255,255,0.12); color:var(--text-primary); }
+    .modal-subtitle { font-size:14px; color:var(--text-muted); margin-bottom:24px; }
+    .modal-actions { display:flex; flex-direction:column; gap:12px; }
+    .modal-action-card { display:flex; align-items:center; gap:16px; padding:18px 20px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:14px; cursor:pointer; text-align:left; width:100%; transition:all .25s; color:var(--text-primary); }
+    .modal-action-card:hover { background:rgba(255,255,255,0.07); border-color:var(--emerald-light); transform:translateX(4px); }
+    .modal-action-icon { width:48px; height:48px; border-radius:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .modal-action-icon svg { width:22px; height:22px; }
+    .modal-action-text { flex:1; }
+    .modal-action-title { display:block; font-size:15px; font-weight:600; margin-bottom:3px; }
+    .modal-action-desc { display:block; font-size:12px; color:var(--text-muted); }
+    .modal-action-arrow { color:var(--text-muted); flex-shrink:0; }
+    .modal-section-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+    .modal-section-title { font-size:1rem; font-weight:600; color:var(--text-primary); }
+    .modal-back-btn { background:none; border:none; color:var(--emerald-light); font-size:13px; cursor:pointer; padding:4px 8px; border-radius:6px; transition:background .2s; }
+    .modal-back-btn:hover { background:rgba(52,211,153,0.1); }
+    #etuTable tbody tr { border-bottom:1px solid var(--glass-border); transition:background .2s; }
+    #etuTable tbody tr:hover { background:rgba(255,255,255,0.04); }
+    #etuTable tbody tr:last-child { border-bottom:none; }
+    #etuTable td { padding:12px 16px; font-size:13px; color:var(--text-secondary); vertical-align:middle; }
+    .etu-avatar { width:34px; height:34px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:11px; color:#000; flex-shrink:0; background:linear-gradient(135deg,var(--emerald),var(--gold)); }
+    .note-form { display:flex; flex-direction:column; gap:16px; }
+    .form-group { display:flex; flex-direction:column; gap:6px; }
+    .form-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    .form-label { font-size:12px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:.06em; }
+    .form-select,.form-input { padding:10px 14px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:10px; color:var(--text-primary); font-size:14px; transition:border-color .2s; outline:none; width:100%; }
+    .form-select:focus,.form-input:focus { border-color:var(--emerald-light); }
+    .form-select option { background:#1a1f2e; }
+    .form-error { padding:10px 14px; border-radius:10px; font-size:13px; background:rgba(248,113,113,0.12); color:#f87171; border:1px solid rgba(248,113,113,0.2); }
+    .form-success { padding:10px 14px; border-radius:10px; font-size:13px; background:rgba(52,211,153,0.12); color:var(--emerald-light); border:1px solid rgba(52,211,153,0.2); }
+    .form-footer { display:flex; gap:10px; justify-content:flex-end; margin-top:8px; }
+    .btn-cancel { padding:10px 20px; border-radius:10px; font-size:14px; cursor:pointer; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:var(--text-muted); transition:all .2s; }
+    .btn-cancel:hover { background:rgba(255,255,255,0.1); }
+    .btn-submit { display:flex; align-items:center; gap:8px; padding:10px 22px; border-radius:10px; font-size:14px; font-weight:600; cursor:pointer; background:linear-gradient(135deg,var(--emerald),var(--gold)); border:none; color:#000; transition:opacity .2s,transform .2s; }
+    .btn-submit:hover { opacity:.88; transform:translateY(-1px); }
+    .btn-submit:disabled { opacity:.5; cursor:not-allowed; }
+    @media(max-width:640px) { .modal-box { padding:20px 16px; } .form-row { grid-template-columns:1fr; } }
+</style>
+
+
+<!-- ══════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+(function(){
+    let currentClasseId = null;
+    let currentData     = { eleves: [], matieres: [], periodes: [] };
+    let spChartInstance = null;
+
+    /* ══════════════════════════════
+       CORRECTION 1 : Lecture du cookie CSRF (méthode recommandée Django)
+       Au lieu de lire le token depuis FormData (peu fiable après reset),
+       on le lit directement depuis le cookie csrftoken.
+    ══════════════════════════════ */
+    function getCsrfToken() {
+        const name = 'csrftoken';
+        if (document.cookie && document.cookie !== '') {
+            for (let cookie of document.cookie.split(';')) {
+                cookie = cookie.trim();
+                if (cookie.startsWith(name + '=')) {
+                    return decodeURIComponent(cookie.substring(name.length + 1));
+                }
+            }
+        }
+        // Fallback : lire depuis le champ hidden du formulaire
+        const input = document.querySelector('[name=csrfmiddlewaretoken]');
+        return input ? input.value : '';
+    }
+
+    /* ══════════════════════════════
+       FETCH — charge les données de la classe depuis l'API
+    ══════════════════════════════ */
+    async function fetchClasseData(classeId) {
+        try {
+            const res = await fetch(`/api/classe/${classeId}/`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            // CORRECTION 2 : Vérifier le statut HTTP avant de parser le JSON
+            if (!res.ok) {
+                console.error(`Erreur API classe : HTTP ${res.status}`);
+                return { eleves: [], matieres: [], periodes: [] };
+            }
+            const data = await res.json();
+            currentData = data;
+            return data;
+        } catch(e) {
+            console.error('Erreur fetch classe:', e);
+            return { eleves: [], matieres: [], periodes: [] };
+        }
+    }
+
+    /* ══════════════════════════════
+       REMPLIR LES SELECTS du formulaire
+    ══════════════════════════════ */
+    function populateSelects(data) {
+        const selEtu = document.getElementById('noteEtudiant');
+        selEtu.innerHTML = '<option value="">-- Sélectionner un étudiant --</option>';
+        (data.eleves || []).forEach(e => {
+            const opt = document.createElement('option');
+            opt.value       = e.id;
+            opt.textContent = e.nom;
+            selEtu.appendChild(opt);
+        });
+
+        const selMat = document.getElementById('noteMatiere');
+        selMat.innerHTML = '<option value="">-- Sélectionner une matière --</option>';
+        (data.matieres || []).forEach(m => {
+            const opt = document.createElement('option');
+            opt.value       = m.id;
+            opt.textContent = `${m.nom} (coef. ${m.coefficient})`;
+            selMat.appendChild(opt);
+        });
+
+        const selPer = document.getElementById('notePeriode');
+        selPer.innerHTML = '<option value="">-- Sélectionner une période --</option>';
+        (data.periodes || []).forEach(p => {
+            const opt = document.createElement('option');
+            opt.value       = p.id;
+            opt.textContent = p.libelle;
+            selPer.appendChild(opt);
+        });
+    }
+
+    /* ══════════════════════════════
+       OUVRIR LE MODAL
+    ══════════════════════════════ */
+    window.openModal = async function(classeId, nom, niveau) {
+        currentClasseId = classeId;
+        document.getElementById('modalNom').textContent    = nom;
+        document.getElementById('modalNiveau').textContent = niveau;
+        document.getElementById('noteClasseId').value      = classeId;
+        backToActions();
+        document.getElementById('classeModal').classList.add('active');
+        document.body.style.overflow = 'hidden';
+
+        const data = await fetchClasseData(classeId);
+        populateSelects(data);
+    };
+
+    window.closeModal = function(e) {
+        if (e.target === document.getElementById('classeModal')) closeModalForce();
+    };
+
+    window.closeModalForce = function() {
+        document.getElementById('classeModal').classList.remove('active');
+        document.body.style.overflow = '';
+        resetNoteForm();
+    };
+
+    window.backToActions = function() {
+        show('actionsView');
+        hide('etudiantsView');
+        hide('noteView');
+        resetNoteForm();
+    };
+
+    /* ══════════════════════════════
+       VOIR LES ÉTUDIANTS
+       CORRECTION 3 : Affichage des colonnes Moyenne et Rang
+       (le tableau dans le HTML en avait 7 th mais les lignes n'en généraient que 4)
+    ══════════════════════════════ */window.loadEtudiants = function() {
+    hide('actionsView');
+    show('etudiantsView');
+
+    const tbody = document.getElementById('etuTbody');
+
+    if (!currentData.eleves || !currentData.eleves.length) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text-muted);">Aucun étudiant inscrit dans cette classe.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = '';
+    currentData.eleves.forEach(e => {
+        const parts = (e.nom || '').trim().split(' ');
+        const init  = ((parts[0]?.[0] || '') + (parts[1]?.[0] || '')).toUpperCase();
+
+        // ── MOYENNE vient de e.moyenne (retourné par l'API Python) ──
+        const moy = parseFloat(e.moyenne);
+        let moyStr   = '—';
+        let moyColor = 'var(--text-muted)';
+        if (!isNaN(moy)) {
+            moyStr   = moy.toFixed(2);
+            moyColor = moy >= 16 ? '#34d399'
+                     : moy >= 14 ? '#6ee7b7'
+                     : moy >= 12 ? '#fbbf24'
+                     : moy >= 10 ? '#fb923c'
+                     :             '#f87171';
+        }
+
+        // ── RANG vient de e.rang (retourné par l'API Python) ──
+        const rang    = (e.rang !== null && e.rang !== undefined && e.rang !== '—') ? e.rang : null;
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <div class="etu-avatar">${escHtml(init)}</div>
+                    <div style="font-weight:600;color:var(--text-primary);font-size:13px;">${escHtml(e.nom)}</div>
+                </div>
+            </td>
+            <td>${escHtml(e.tel || '—')}</td>
+            <td>${escHtml(e.email || '—')}</td>
+            <td style="text-align:center;font-weight:700;font-family:'Space Mono',monospace;color:${moyColor};">
+                ${escHtml(moyStr)}
+            </td>
+            <td style="text-align:center;">
+                ${rang !== null
+                    ? `<span style="background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.2);padding:3px 10px;border-radius:999px;color:var(--gold);font-weight:600;">${escHtml(String(rang))}</span>`
+                    : '<span style="color:var(--text-muted);">—</span>'
+                }
+            </td>
+            <td style="text-align:center;">
+                <button class="btn-profil"
+                    style="padding:5px 12px;background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.2);border-radius:8px;color:var(--emerald-light);font-size:12px;cursor:pointer;transition:all .2s;"
+                    onmouseover="this.style.background='rgba(52,211,153,0.2)'"
+                    onmouseout="this.style.background='rgba(52,211,153,0.1)'">
+                    Voir profil
+                </button>
+            </td>`;
+
+        tr.querySelector('.btn-profil').addEventListener('click', () => openStudentModal(e));
+        tbody.appendChild(tr);
+    });
+};
+    window.filterEtu = function() {
+        const q = document.getElementById('searchEtu').value.toLowerCase();
+        document.querySelectorAll('#etuTbody tr').forEach(tr => {
+            tr.style.display = tr.innerText.toLowerCase().includes(q) ? '' : 'none';
+        });
+    };
+
+    /* ══════════════════════════════
+       FORMULAIRE NOTE
+    ══════════════════════════════ */
+    window.showNoteForm = function() {
+        hide('actionsView');
+        show('noteView');
+    };
+
+    /* ══════════════════════════════
+       CORRECTION PRINCIPALE : submitNote
+       — Lecture du CSRF depuis le cookie (fiable)
+       — Vérification du statut HTTP avant r.json()
+       — Message d'erreur détaillé au lieu de "Erreur réseau" générique
+    ══════════════════════════════ */
+    window.submitNote = function(e) {
+        e.preventDefault();
+
+        const btn  = document.getElementById('submitBtn');
+        const errD = document.getElementById('noteError');
+        const okD  = document.getElementById('noteSuccess');
+        errD.style.display = 'none';
+        okD.style.display  = 'none';
+
+        // Validation rapide côté client
+        const etudiant = document.getElementById('noteEtudiant').value;
+        const matiere  = document.getElementById('noteMatiere').value;
+        const periode  = document.getElementById('notePeriode').value;
+        const note     = document.getElementById('noteValeur').value;
+
+        if (!etudiant || !matiere || !periode || note === '') {
+            errD.textContent   = 'Veuillez remplir tous les champs obligatoires.';
+            errD.style.display = 'block';
+            return;
+        }
+
+        btn.disabled    = true;
+        btn.textContent = 'Enregistrement...';
+
+        const formData = new FormData(document.getElementById('noteForm'));
+
+        // CORRECTION : token lu depuis le cookie, pas depuis FormData (plus fiable)
+        const csrfToken = getCsrfToken();
+
+        fetch('/api/note/ajouter/', {
+            method: 'POST',
+            body:   formData,
+            headers: {
+                'X-CSRFToken':      csrfToken,
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(res => {
+            // CORRECTION : on vérifie le statut avant de parser
+            if (!res.ok) {
+                return res.text().then(text => {
+                    // Tenter de parser en JSON quand même (erreur Django structurée)
+                    try {
+                        const json = JSON.parse(text);
+                        throw new Error(json.error || `Erreur serveur (HTTP ${res.status})`);
+                    } catch(_) {
+                        // La réponse n'est pas du JSON (ex: page HTML Django 403/500)
+                        if (res.status === 403) throw new Error('Accès refusé (403) — problème de token CSRF. Rechargez la page.');
+                        if (res.status === 404) throw new Error('URL introuvable (404) — vérifiez la configuration des URLs Django.');
+                        if (res.status === 500) throw new Error('Erreur interne du serveur (500) — consultez les logs Django.');
+                        throw new Error(`Erreur HTTP ${res.status}`);
+                    }
+                });
+            }
+            return res.json();
+        })
+        .then(data => {
+            if (data.success) {
+                okD.textContent   = '✓ Note enregistrée avec succès !';
+                okD.style.display = 'block';
+                document.getElementById('noteForm').reset();
+                document.getElementById('noteClasseId').value = currentClasseId;
+                populateSelects(currentData);
+                setTimeout(() => { okD.style.display = 'none'; }, 3000);
+            } else {
+                errD.textContent   = data.error || 'Une erreur est survenue.';
+                errD.style.display = 'block';
+            }
+        })
+        .catch(err => {
+            errD.textContent   = err.message || 'Erreur réseau. Vérifiez votre connexion.';
+            errD.style.display = 'block';
+        })
+        .finally(() => {
+            btn.disabled  = false;
+            btn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                <polyline points="17 21 17 13 7 13 7 21"/>
+                <polyline points="7 3 7 8 15 8"/>
+            </svg> Enregistrer la note`;
+        });
+    };
+
+    function resetNoteForm() {
+        const f = document.getElementById('noteForm');
+        if (f) f.reset();
+        if (currentClasseId) document.getElementById('noteClasseId').value = currentClasseId;
+        if (currentData && currentData.eleves && currentData.eleves.length) populateSelects(currentData);
+        document.getElementById('noteError').style.display   = 'none';
+        document.getElementById('noteSuccess').style.display = 'none';
+    }
+
+    /* ══════════════════════════════
+       MODAL PROFIL ÉTUDIANT
+       CORRECTION 5 : Affichage de la moyenne et du rang dans le profil
+       + graphique Chart.js avec les vraies données
+    ══════════════════════════════ */
+    function noteColor(note) {
+        const n = parseFloat(note);
+        if (isNaN(n)) return '#94a3b8';
+        if (n >= 16)  return '#34d399';
+        if (n >= 14)  return '#6ee7b7';
+        if (n >= 12)  return '#fbbf24';
+        if (n >= 10)  return '#fb923c';
+        return '#f87171';
+    }
+
+    function appreciation(note) {
+        const n = parseFloat(note);
+        if (isNaN(n)) return { label:'—',           color:'var(--text-muted)' };
+        if (n >= 16)  return { label:'Très bien',   color:'#34d399' };
+        if (n >= 14)  return { label:'Bien',        color:'#6ee7b7' };
+        if (n >= 12)  return { label:'Assez bien',  color:'#fbbf24' };
+        if (n >= 10)  return { label:'Passable',    color:'#fb923c' };
+        return              { label:'Insuffisant', color:'#f87171' };
+    }
+
+    window.openStudentModal = function(data) {
+        const parts = (data.nom || '').trim().split(' ');
+        document.getElementById('sp-avatar').textContent  = ((parts[0]?.[0] || '') + (parts[1]?.[0] || '')).toUpperCase();
+        document.getElementById('sp-nom').textContent     = data.nom    || '—';
+        document.getElementById('sp-classe').textContent  = 'Classe : ' + document.getElementById('modalNom').textContent;
+        document.getElementById('sp-tel').textContent     = '📞 ' + (data.tel   || '—');
+        document.getElementById('sp-email').textContent   = '✉ '  + (data.email || '—');
+
+        // Moyenne et rang
+        const moy = parseFloat(data.moyenne);
+        document.getElementById('sp-moyenne').textContent = isNaN(moy) ? '—' : moy.toFixed(2);
+        document.getElementById('sp-rang').textContent    = data.rang   || '—';
+
+        // Tableau des notes par matière
+        const tbody = document.getElementById('sp-notes-body');
+        const notes = Array.isArray(data.notes) ? data.notes : [];
+
+        if (!notes.length) {
+            tbody.innerHTML = `<tr><td colspan="4" style="padding:16px 20px;color:var(--text-muted);font-size:13px;">Aucune note enregistrée pour le moment.</td></tr>`;
+        } else {
+            tbody.innerHTML = '';
+            notes.forEach(n => {
+                const app   = n.appreciation || appreciation(n.valeur).label;
+                const color = noteColor(n.valeur);
+                const tr    = document.createElement('tr');
+                tr.style.borderBottom = '1px solid var(--glass-border)';
+                tr.innerHTML = `
+                    <td style="padding:10px 20px;font-size:13px;color:var(--text-secondary);">${escHtml(n.matiere || '—')}</td>
+                    <td style="padding:10px 20px;text-align:center;font-weight:700;font-family:'Space Mono',monospace;color:${color};">${escHtml(String(n.valeur))}</td>
+                    <td style="padding:10px 20px;text-align:center;color:var(--text-muted);font-size:12px;">${escHtml(String(n.coefficient || '—'))}</td>
+                    <td style="padding:10px 20px;text-align:center;font-size:12px;color:${color};">${escHtml(app)}</td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Graphique Chart.js
+        if (spChartInstance) spChartInstance.destroy();
+        const ctx    = document.getElementById('spChart').getContext('2d');
+        const labels = notes.map(n => n.matiere || '?');
+        const values = notes.map(n => parseFloat(n.valeur) || 0);
+        const colors = values.map(v => noteColor(v));
+
+        spChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [{
+                    label: 'Note / 20',
+                    data:            values,
+                    backgroundColor: colors.map(c => c + '33'),
+                    borderColor:     colors,
+                    borderWidth:     2,
+                    borderRadius:    8
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: {
+                        min: 0, max: 20,
+                        ticks: { color: '#94a3b8', stepSize: 4 },
+                        grid:  { color: 'rgba(255,255,255,0.05)' }
+                    },
+                    x: {
+                        ticks: { color: '#94a3b8', font: { size: 11 } },
+                        grid:  { display: false }
+                    }
+                }
+            }
+        });
+
+        document.getElementById('studentModal').style.display = 'flex';
+    };
+
+    window.closeStudentModal = function() {
+        document.getElementById('studentModal').style.display = 'none';
+    };
+
+    document.getElementById('studentModal').addEventListener('click', function(e) {
+        if (e.target === this) closeStudentModal();
+    });
+
+    /* ══════════════════════════════
+       UTILITAIRES
+    ══════════════════════════════ */
+
+    // CORRECTION 6 : escHtml pour éviter l'injection XSS dans innerHTML
+    function escHtml(str) {
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    function show(id) { document.getElementById(id).style.display = 'block'; }
+    function hide(id) { document.getElementById(id).style.display = 'none';  }
+
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+            if (document.getElementById('studentModal').style.display === 'flex') closeStudentModal();
+            else closeModalForce();
+        }
+    });
+})();
+</script>

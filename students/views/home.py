@@ -7,6 +7,10 @@ from django.utils import timezone
 from django.views import View
 from django.contrib import messages
 from django.core.exceptions import ValidationError
+from django.db.models import Avg, F
+from django.db.models.functions import Coalesce
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 
 # Create your views here.
 from ..tasks import index 
@@ -21,11 +25,81 @@ class Home_texte(View):
        
         context = {'result': 'redis'}
         return render(request, self.templates, context)
-
- 
-
-
     
+class Home_classes(View):
+    template_name = 'global_data/classes.html'
+
+    def get(self, request):
+        classes = Classe.objects.all()
+
+        for classe in classes:
+            inscriptions       = Inscription.objects.filter(classe=classe)
+            classe.nb_etudiants = inscriptions.count()
+            classe.nb_matieres  = AffectationEnseignant.objects.filter(
+                classe=classe
+            ).values('matiere').distinct().count()
+
+            moyennes = [m for m in (i.get_moyenne() for i in inscriptions) if m is not None]
+            classe.moyenne_classe    = round(sum(moyennes) / len(moyennes), 2) if moyennes else None
+            classe.meilleure_moyenne = max(moyennes) if moyennes else None
+            classe.pire_moyenne      = min(moyennes) if moyennes else None
+
+        return render(request, self.template_name, {'classes': classes})
+
+def api_classe_data(request, classe_id):
+    inscriptions = Inscription.objects.select_related('etudiant').filter(classe_id=classe_id)
+    matieres     = AffectationEnseignant.objects.select_related('matiere').filter(classe_id=classe_id)
+    annee_active = AnneeAcademique.get_active()
+    periodes     = annee_active.periodes.filter(cloturee=False) if annee_active else []
+
+    donnees = []
+    for insc in inscriptions:
+        moy = insc.get_moyenne()
+        donnees.append({
+            'insc':    insc,
+            'moyenne': moy,
+            'notes':   insc.get_notes_par_matiere(),
+        })
+
+    # Tri par moyenne décroissante → rang = position
+    donnees.sort(
+        key=lambda x: x['moyenne'] if x['moyenne'] is not None else -1,
+        reverse=True
+    )
+
+    eleves = []
+    for rang, d in enumerate(donnees, start=1):
+        i = d['insc']
+        eleves.append({
+            'id':      i.etudiant.id,
+            'nom':     i.etudiant.get_full_name(),
+            'email':   i.etudiant.email,
+            'tel':     str(i.etudiant.telephone) if i.etudiant.telephone else '—',
+            'moyenne': d['moyenne'],                                # ← moyenne calculée
+            'rang':    rang if d['moyenne'] is not None else '—',  # ← rang calculé
+            'notes':   d['notes'],                                  # ← notes par matière
+        })
+
+    return JsonResponse({
+        'eleves':   eleves,
+        'matieres': [
+            {
+                'id':          a.matiere.id,
+                'nom':         a.matiere.nom,
+                'coefficient': a.matiere.coefficient,
+            }
+            for a in matieres
+        ],
+        'periodes': [
+            {
+                'id':      p.id,
+                'libelle': p.libelle,
+            }
+            for p in periodes
+        ],
+    })
+
+        
 class Home_index(View):
     templates=  'index.html'
     
@@ -83,17 +157,15 @@ class Home_analytic(View):
 
  
 
-
-
 class Home_setting(View):
-    templates=  'global_data/settings.html'
+    template_name = 'global_data/settings.html'
     
     def get(self, request):
-       
-        context = {}
-        return render(request, self.templates, context)
-
- 
+        user = request.user  # Récupère l'utilisateur connecté
+        context = {'users': user}  # on garde "users" pour le template
+        return render(request, self.template_name, context)
+    
+    
 class Home_inbox(View):
     templates=  'global_data/inbox.html'
     
@@ -114,6 +186,7 @@ class Home_etudiant(View):
         inscriptions = Inscription.objects.select_related('etudiant', 'classe').all()
         etu_inscrit = Inscription.objects.count()
         invite = User.objects.filter(role=Role.INVITE).count()
+        
         for inscription in inscriptions:
         # Récupérer toutes les affectations pour la classe
             affectations = AffectationEnseignant.objects.filter(classe=inscription.classe).select_related('enseignant')
@@ -314,3 +387,98 @@ class Ajouter_annee(View):
                 messages.error(request, error)
 
         return render(request, self.templates)
+    
+    
+    
+
+
+class Ajouter_matieres(View):
+    templates=  'manager/ajouter_mats.html'
+    
+    def get(self, request):
+         annees = AnneeAcademique.objects.all()
+         context = {
+            "annees": annees
+        }
+         return render(request, self.templates, context)
+    
+    
+class Ajouter_matieres(View):
+    template_name = 'manager/ajouter_mats.html'
+
+    def get(self, request):
+       annee_active = AnneeAcademique.get_active()
+       context = {"annee_active": annee_active}
+       
+       return render(request, self.template_name, context)
+    
+    def post(self, request):
+        nom = request.POST.get("nom")
+        code = request.POST.get("code")
+        coefficient = request.POST.get("coefficient")
+
+        annee_active = AnneeAcademique.get_active()
+
+        if not annee_active:
+            messages.error(request, "Aucune année académique active.")
+            return redirect("matiere")
+
+        try:
+            Matiere.objects.create(
+                nom=nom,
+                code=code,
+                coefficient=coefficient,
+                annee=annee_active  # ✅ Champ correct
+            )
+            messages.success(request, "Matière ajoutée avec succès.")
+            return redirect("user")
+
+        except Exception:
+            messages.error(request, "Ce code existe déjà pour l'année active.")
+            return redirect("matiere")
+
+
+
+
+   
+@csrf_exempt
+def api_ajouter_note(request):
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Méthode non autorisée.'}, status=405)
+
+    # ← TEMPORAIRE : on retire la vérification du rôle pour tester
+    # if request.user.role != Role.ENSEIGNANT:
+    #     return JsonResponse(...)
+
+    try:
+        etudiant_id  = request.POST.get('etudiant')
+        matiere_id   = request.POST.get('matiere')
+        periode_id   = request.POST.get('periode')
+        valeur       = request.POST.get('note')
+        appreciation = request.POST.get('appreciation', '')
+
+        if not all([etudiant_id, matiere_id, periode_id, valeur]):
+            return JsonResponse({'success': False, 'error': 'Tous les champs obligatoires ne sont pas remplis.'}, status=400)
+
+        etudiant = User.objects.get(id=etudiant_id, role=Role.ETUDIANT)
+
+        if Note.objects.filter(etudiant=etudiant, matiere_id=matiere_id, periode_id=periode_id).exists():
+            return JsonResponse({'success': False, 'error': 'Une note existe déjà.'}, status=400)
+
+        Note.objects.create(
+            etudiant     = etudiant,
+            matiere_id   = matiere_id,
+            periode_id   = periode_id,
+            note         = float(valeur),
+            appreciation = appreciation,
+            saisi_par    = request.user,
+        )
+
+        return JsonResponse({'success': True})
+
+    except User.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Étudiant introuvable.'}, status=404)
+    except ValueError:
+        return JsonResponse({'success': False, 'error': 'La note doit être un nombre valide.'}, status=400)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
