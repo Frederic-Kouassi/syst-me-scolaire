@@ -440,15 +440,10 @@ class Ajouter_matieres(View):
 
 
 
-   
 @csrf_exempt
 def api_ajouter_note(request):
     if request.method != 'POST':
         return JsonResponse({'success': False, 'error': 'Méthode non autorisée.'}, status=405)
-
-    # ← TEMPORAIRE : on retire la vérification du rôle pour tester
-    # if request.user.role != Role.ENSEIGNANT:
-    #     return JsonResponse(...)
 
     try:
         etudiant_id  = request.POST.get('etudiant')
@@ -461,9 +456,6 @@ def api_ajouter_note(request):
             return JsonResponse({'success': False, 'error': 'Tous les champs obligatoires ne sont pas remplis.'}, status=400)
 
         etudiant = User.objects.get(id=etudiant_id, role=Role.ETUDIANT)
-
-        if Note.objects.filter(etudiant=etudiant, matiere_id=matiere_id, periode_id=periode_id).exists():
-            return JsonResponse({'success': False, 'error': 'Une note existe déjà.'}, status=400)
 
         Note.objects.create(
             etudiant     = etudiant,
@@ -478,7 +470,9 @@ def api_ajouter_note(request):
 
     except User.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'Étudiant introuvable.'}, status=404)
-    except ValueError:
-        return JsonResponse({'success': False, 'error': 'La note doit être un nombre valide.'}, status=400)
+    except ValueError as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=400)
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return JsonResponse({'success': False, 'error': str(e)}, status=500)

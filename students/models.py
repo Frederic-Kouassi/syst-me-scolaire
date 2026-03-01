@@ -217,7 +217,6 @@ class Note(TimeStampedModel):
     class Meta:
         verbose_name = "Note"
         # CONTRAINTE LA PLUS IMPORTANTE DU PROJET : Empêche TOUS les bugs de doublons
-        unique_together = ['etudiant', 'matiere', 'periode']
         indexes = [
             models.Index(fields=['etudiant', 'periode'])
           
