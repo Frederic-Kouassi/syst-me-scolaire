@@ -3,17 +3,17 @@
 {% load tailwind_tags %}
  {% tailwind_css %}
 
- <aside class="sidebar" id="sidebar">
-  <div class="sidebar-header">
-    <div class="logo" style="padding:0; overflow:hidden; {% if request.user.image %}background:none;{% endif %}">
-        {% if request.user.image %}
-            <img src="{{ request.user.image.url }}" alt="logo" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">
-        {% else %}
-            {{ request.user.first_name|slice:":1"|upper }}-{{ request.user.last_name|slice:":1"|upper }}
-        {% endif %}
-    </div>
-    <span class="logo-text">EduNote Flow</span>
-</div>
+            <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo" style="padding:0; overflow:hidden; {% if request.user.image %}background:none;{% endif %}">
+                    {% if request.user.image %}
+                        <img src="{{ request.user.image.url }}" alt="logo" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">
+                    {% else %}
+                        {{ request.user.first_name|slice:":1"|upper }}-{{ request.user.last_name|slice:":1"|upper }}
+                    {% endif %}
+                </div>
+                <span class="logo-text">EduNote Flow</span>
+            </div>
 
             <ul class="nav-menu">
                 <li class="nav-section">
@@ -86,21 +86,15 @@
             </ul>
 
             <div class="sidebar-footer">
-    <div class="user-profile">
-        <div class="user-avatar" style="padding:0; overflow:hidden;">
-            {% if request.user.image %}
-                <img src="{{ request.user.image.url }}" alt="avatar" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">
-            {% else %}
-                {{ request.user.first_name|slice:":1"|upper }}{{ request.user.last_name|slice:":1"|upper }}
-            {% endif %}
-        </div>
-        <div class="user-info">
-            <a href="{% url 'inbox' %}"><div class="user-name">Messages</div></a>
-            <div class="user-role">Collaboration</div>
-        </div>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="6 9 12 15 18 9"/>
-        </svg>
-    </div>
-</div>
-</aside>
+                <div class="user-profile">
+                    <div class="user-avatar">SMS</div>
+                    <div class="user-info">
+                       <a href="{% url 'inbox' %}"> <div class="user-name">Messages</div></a>
+                        <div class="user-role">Collaboration</div>
+                    </div>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                </div>
+            </div>
+        </aside>

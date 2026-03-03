@@ -14,7 +14,7 @@ urlpatterns = [
     path('user/', Home_user.as_view(), name="user"),
     path('analytic/', Home_analytic.as_view(), name="analytic"),
     path('setting/',  Home_setting.as_view(), name="settings"),
-     path('inbox',  Home_inbox.as_view(), name="inbox"),
+    
      path('etudiant/', Home_etudiant.as_view(), name="etudiant"),
      path('t_classe', Home_classes.as_view(), name="t_classe"),
      
@@ -29,11 +29,21 @@ urlpatterns = [
     path("register/", RegisterView.as_view(), name="register"),
     path("login/", LoginView.as_view(), name="login"),
     path('logout/', LogoutView.as_view(), name='logout'),
-    path('verify-email/', VerifyEmailView.as_view(), name='verify_email'),
+   
     
     
     path('api/classe/<int:classe_id>/', api_classe_data, name='api_classe_data'),
     path('api/note/ajouter/', api_ajouter_note, name='api_ajouter_note'),
+    
+    
+    # ── Messagerie ──
+    path('inbox',                                    Home_inbox.as_view(),  name="inbox"),
+    path('messages/<int:message_id>/',               lire_message,          name='lire_message'),
+    path('messages/envoyer/',                        envoyer_message,       name='envoyer_message'),
+    path('messages/<int:message_id>/repondre/',      repondre_message,      name='repondre_message'),
+    path('messages/<int:message_id>/supprimer/',     supprimer_message,     name='supprimer_message'),
+    path('messages/<int:message_id>/marquer/',       marquer_message,       name='marquer_message'),
+    path('messages/<int:message_id>/archiver/',      archiver_message,      name='archiver_message'),
 
 
 ]

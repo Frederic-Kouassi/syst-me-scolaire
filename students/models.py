@@ -265,3 +265,26 @@ class Bulletin(TimeStampedModel):
 
     def __str__(self):
         return f"Bulletin {self.etudiant} {self.periode} : {self.get_statut_generation_display()}"
+    
+    
+    # ------------------------------
+# Messagerie
+# ------------------------------
+class Message(TimeStampedModel):
+    sender      = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
+    recipient   = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_messages')
+    subject     = models.CharField("Sujet", max_length=255)
+    body        = models.TextField("Corps du message")
+    attachment  = models.FileField("Pièce jointe", upload_to='messages/attachments/', null=True, blank=True)
+    is_read     = models.BooleanField("Lu", default=False)
+    is_archived = models.BooleanField("Archivé", default=False)
+    is_deleted_by_sender    = models.BooleanField(default=False)
+    is_deleted_by_recipient = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name = "Message"
+        verbose_name_plural = "Messages"
+        ordering = ["-created"]
+
+    def __str__(self):
+        return f"{self.sender} → {self.recipient} : {self.subject}"

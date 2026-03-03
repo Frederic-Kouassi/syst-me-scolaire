@@ -194,15 +194,186 @@ class Home_setting(View):
         
         return redirect('settings')
     
+    # ------------------------------
+# Messagerie
+# ------------------------------
+
 class Home_inbox(View):
-    templates=  'global_data/inbox.html'
-    
+    templates = 'global_data/inbox.html'
+
     def get(self, request):
-       
-        context = {}
+        messages_recus = Message.objects.filter(
+            recipient=request.user,
+            is_archived=False,
+            is_deleted_by_recipient=False
+        )
+
+        # Stats cards
+        total    = Message.objects.filter(recipient=request.user, is_deleted_by_recipient=False).count()
+        non_lus  = messages_recus.filter(is_read=False).count()
+        envoyes  = Message.objects.filter(sender=request.user, is_deleted_by_sender=False).count()
+        archives = Message.objects.filter(recipient=request.user, is_archived=True).count()
+
+        # Premier message affiché par défaut
+        premier_message = messages_recus.first()
+
+        context = {
+            'messages_recus'  : messages_recus,
+            'premier_message' : premier_message,
+            'total'           : total,
+            'non_lus'         : non_lus,
+            'envoyes'         : envoyes,
+            'archives'        : archives,
+            'utilisateurs'    : User.objects.exclude(id=request.user.id),
+        }
         return render(request, self.templates, context)
 
 
+def lire_message(request, message_id):
+    """AJAX — retourne le contenu d'un message en JSON et le marque comme lu"""
+    message = Message.objects.get(id=message_id, recipient=request.user)
+
+    if not message.is_read:
+        message.is_read = True
+        message.save(update_fields=['is_read'])
+
+    # Initiales de l'expéditeur
+    sender = message.sender
+    if sender.first_name and sender.last_name:
+        initials = f"{sender.first_name[0]}{sender.last_name[0]}".upper()
+    else:
+        initials = sender.username[:2].upper()
+
+    data = {
+        'id'              : message.id,
+        'subject'         : message.subject,
+        'body'            : message.body,
+        'sender'          : sender.get_full_name() or sender.username,
+        'email'           : sender.email,
+        'initials'        : initials,
+        'date'            : message.created.strftime('%d %b %Y à %H:%M'),
+        'attachment'      : message.attachment.url if message.attachment else None,
+        'attachment_name' : message.attachment.name.split('/')[-1] if message.attachment else None,
+    }
+    return JsonResponse(data)
+
+
+def envoyer_message(request):
+    """AJAX POST — envoyer un nouveau message"""
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Méthode non autorisée.'}, status=405)
+
+    recipient_id = request.POST.get('recipient_id')
+    subject      = request.POST.get('subject', '').strip()
+    body         = request.POST.get('body', '').strip()
+    attachment   = request.FILES.get('attachment')
+
+    if not recipient_id or not subject or not body:
+        return JsonResponse({'success': False, 'error': 'Tous les champs sont obligatoires.'}, status=400)
+
+    try:
+        recipient = User.objects.get(id=recipient_id)
+    except User.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Destinataire introuvable.'}, status=404)
+
+    msg = Message(
+        sender    = request.user,
+        recipient = recipient,
+        subject   = subject,
+        body      = body,
+    )
+    if attachment:
+        msg.attachment = attachment
+    msg.save()
+
+    return JsonResponse({'success': True, 'message_id': msg.id})
+
+
+def repondre_message(request, message_id):
+    """AJAX POST — répondre à un message"""
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Méthode non autorisée.'}, status=405)
+
+    try:
+        message_original = Message.objects.get(id=message_id, recipient=request.user)
+    except Message.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Message introuvable.'}, status=404)
+
+    body       = request.POST.get('body', '').strip()
+    attachment = request.FILES.get('attachment')
+
+    if not body:
+        return JsonResponse({'success': False, 'error': 'La réponse ne peut pas être vide.'}, status=400)
+
+    reponse = Message(
+        sender    = request.user,
+        recipient = message_original.sender,
+        subject   = f"Re: {message_original.subject}",
+        body      = body,
+    )
+    if attachment:
+        reponse.attachment = attachment
+    reponse.save()
+
+    return JsonResponse({'success': True, 'message_id': reponse.id})
+
+
+def supprimer_message(request, message_id):
+    """AJAX POST — suppression douce d'un message"""
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Méthode non autorisée.'}, status=405)
+
+    try:
+        message = Message.objects.get(id=message_id)
+    except Message.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Message introuvable.'}, status=404)
+
+    if message.recipient == request.user:
+        message.is_deleted_by_recipient = True
+    elif message.sender == request.user:
+        message.is_deleted_by_sender = True
+    else:
+        return JsonResponse({'success': False, 'error': 'Non autorisé.'}, status=403)
+
+    # Suppression réelle si les deux côtés ont supprimé
+    if message.is_deleted_by_sender and message.is_deleted_by_recipient:
+        message.delete()
+    else:
+        message.save()
+
+    return JsonResponse({'success': True})
+
+
+def marquer_message(request, message_id):
+    """AJAX POST — toggle lu / non lu"""
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Méthode non autorisée.'}, status=405)
+
+    try:
+        message = Message.objects.get(id=message_id, recipient=request.user)
+    except Message.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Message introuvable.'}, status=404)
+
+    message.is_read = not message.is_read
+    message.save(update_fields=['is_read'])
+
+    return JsonResponse({'success': True, 'is_read': message.is_read})
+
+
+def archiver_message(request, message_id):
+    """AJAX POST — archiver un message"""
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Méthode non autorisée.'}, status=405)
+
+    try:
+        message = Message.objects.get(id=message_id, recipient=request.user)
+    except Message.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Message introuvable.'}, status=404)
+
+    message.is_archived = True
+    message.save(update_fields=['is_archived'])
+
+    return JsonResponse({'success': True})
 
 
 
